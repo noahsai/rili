@@ -2,6 +2,8 @@
 
 数据，界面样式均照搬百度的。
 
+如果提示缺少qml，就安装 qtdeclarative5-*dev
+
 说一下我写的所有的qt软件的编译方法：
 
 方法一，安装qt环境，qtcreator，直接用qtcreator打开编译即可。

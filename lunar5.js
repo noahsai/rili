@@ -184,7 +184,9 @@
         }
     };
     lunar = function(d) {
-        var b = new Date(d);
+//d还是20xx-xx-xx格式
+		d2 = d.replace("-",".");
+        var b = new Date(d2);
         var r = g(b);
         var f = '';
         var s = r.festival();
