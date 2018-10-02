@@ -99,10 +99,12 @@ rili::rili(QWidget *parent) :
     connect(timer , SIGNAL(timeout()) ,this , SLOT(timeout()));
     readlist();
     initrili();
+    readset();
 }
 
 rili::~rili()
 {
+    saveset();
     savelist();
     for(int i=0;i<notelist.count();i++)
     {
@@ -381,8 +383,9 @@ void rili::mouseMoveEvent(QMouseEvent * event){
 }
 
 void rili::mouseReleaseEvent(QMouseEvent * event){
+    saveset();
     setCursor(Qt::ArrowCursor);
-   event->accept();
+    event->accept();
 }
 
 void rili::on_exit_clicked()
@@ -1022,6 +1025,7 @@ void rili::on_delnote_clicked()
             ui->listWidget->removeItemWidget(list[i]);
             delete list[i];
         }
+        savelist();
         updatetasklist();
         cleannotesignal();
         updatenotesignal();
@@ -1052,6 +1056,7 @@ void rili::editfined(notedata *d ){
         d->id = nowid;
         ++nowid;
     }
+    savelist();
     updatetasklist();
     cleannotesignal();
     updatenotesignal();
@@ -1121,4 +1126,23 @@ void rili::timeout(){
         notify->message(text);//这时会启动notify计时
         notify->show();
     }
+}
+
+void rili::saveset(){
+    QSettings settings("rili", "rilipos");
+   // settings.setValue("size", QSize(370, 150));//因为没得调大小，所以不要记录大小了
+    settings.setValue("pos", pos());
+}
+
+
+void rili::readset(){
+    QSettings settings("rili", "rilipos");
+//    resize(settings.value("size", QSize(370, 150)).toSize());//因为没得调大小，所以不要记录大小了
+    int x=QApplication::desktop()->width()/2 - this->width()/2;
+    int y= QApplication::desktop()->height()/2 - this->height()/2;
+    QPoint point;
+    point=settings.value("pos", QPoint(x,y)).toPoint();
+    if(point.x()<0||point.x()>QApplication::desktop()->width()-20) point.setX(x);
+    if(point.y()<0||point.y()>QApplication::desktop()->height()-40) point.setY(y);
+    move(point);
 }

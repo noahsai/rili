@@ -238,7 +238,11 @@ border:1px solid #DBDBDB; }</string>
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="per"/>
+            <widget class="QSpinBox" name="per">
+             <property name="maximum">
+              <number>366</number>
+             </property>
+            </widget>
            </item>
            <item>
             <spacer name="horizontalSpacer">
