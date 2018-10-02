@@ -1074,7 +1074,6 @@ void rili::timeout(){
         if(now.toString("hh:mm:ss")==(tasklist[i]->time+":00")){
             if(notify == NULL) {
                 notify = new Notify(this);
-                connect( notify ,SIGNAL(closeed()),this ,SLOT(notifyclose()));
             }
             qDebug()<<"work:"<<tasklist[i];
             QMimeDatabase db;
@@ -1095,13 +1094,13 @@ void rili::timeout(){
             }
             else if(type == "application/x-sharedlib"||type == "application/x-shellscript"){
                 QProcess pro;
-                pro.startDetached(("./"+tasklist[i]->mp3_cmd));
+                pro.startDetached(("bash \""+tasklist[i]->mp3_cmd +"\""));
                 qDebug()<<"run shellscript sharedlib:"<<tasklist[i]->mp3_cmd;
             }
             else {
                 QProcess pro;
-                pro.startDetached(("xdg-open "+tasklist[i]->mp3_cmd));
-                qDebug()<<"run xdg-open "<<tasklist[i]->mp3_cmd;
+                pro.startDetached(("xdg-open  \""+tasklist[i]->mp3_cmd+"\""));
+                qDebug()<<"run xdg-open"<<tasklist[i]->mp3_cmd ;
             }
             if(!tasklist[i]->img.isEmpty() ){
                 img = tasklist[i]->img;
@@ -1122,8 +1121,4 @@ void rili::timeout(){
         notify->message(text);//这时会启动notify计时
         notify->show();
     }
-}
-
-void rili::notifyclose(){
-    notify = NULL;
 }

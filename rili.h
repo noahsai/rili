@@ -83,7 +83,6 @@ private slots:
     void editfined(notedata*);
     void on_tableWidget_itemDoubleClicked(QTableWidgetItem *item);
     void timeout();
-    void notifyclose();
 
 private:
     Ui::rili *ui;
@@ -107,7 +106,8 @@ private:
     void updatenotesignal();
     void notesofdate(QString &);
     void updatetasklist();
-
+    void saveset();
+    void readset();
     QString currday;
     QNetworkAccessManager manager;
     QNetworkReply* reply;

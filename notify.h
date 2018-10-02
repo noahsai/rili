@@ -25,15 +25,13 @@ public:
 private slots:
     void timeout();
     void repeat(QMediaPlayer::MediaStatus);
-    void stop();
-signals:
-    void closeed();
 private:
     void mousePressEvent(QMouseEvent * event);
     void mouseMoveEvent(QMouseEvent * event);
     void mouseReleaseEvent(QMouseEvent * event);
     void saveset();
     void readset();
+    void stop();
 
     Ui::Notify *ui;
     QTimer* timer;

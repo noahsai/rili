@@ -131,7 +131,7 @@ border:1px solid #DBDBDB; }</string>
           </sizepolicy>
          </property>
          <property name="placeholderText">
-          <string>音乐或命令</string>
+          <string>铃声或命令</string>
          </property>
         </widget>
        </item>

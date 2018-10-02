@@ -8,7 +8,6 @@ Notify::Notify(QWidget *parent) :
     ui->note->setText("");
     pressing = false;
     readset();
-    setAttribute(Qt::WA_DeleteOnClose ,true );//关闭时销毁
     setAttribute(Qt::WA_TranslucentBackground ,false );//背景透明
     setWindowFlags(Qt::Tool|Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
     oldpos.setX(0);
@@ -27,14 +26,20 @@ Notify::~Notify()
 
 void Notify::init(int t, QString &m, QString &i)
 {
+
     time = t*1000;
     icon =i;
     music = m;
     if(i.isEmpty()) {
+        ui->note->setMinimumSize(370,150);
         setAttribute(Qt::WA_TranslucentBackground ,false );//背景透明
         ui->icon->hide();
     }
     else{
+        ui->note->setMinimumSize(250,150);
+        QPixmap pix(icon);
+        pix = pix.scaled(120,150,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+        ui->icon->setPixmap(pix);
         setAttribute(Qt::WA_TranslucentBackground ,true );//背景透明
         ui->icon->show();
     }
@@ -44,6 +49,7 @@ void Notify::init(int t, QString &m, QString &i)
 
 void  Notify::message(QString& mes)
 {
+    player->stop();
     qDebug()<<"get a message"<<mes;
     QString m = ui->note->text();
     if(m.isEmpty()) m = mes;
@@ -56,20 +62,12 @@ void  Notify::message(QString& mes)
     else    player->setMedia(QUrl::fromLocalFile(music));
     player->play();
     timer->start( time );
-   // if(ui->icon->isVisible()){
-        QPixmap pix(icon);
-        pix = pix.scaled(ui->icon->width(),ui->icon->height(),Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-        ui->icon->setPixmap(pix);
-        qDebug()<<pix.width()<<pix.height()<<icon;
-   // }
+
 }
 
 void Notify::timeout()
 {
-    close();
-    emit closeed();
-
-    //可能需要一个信号
+    stop();
 }
 
 
@@ -105,7 +103,7 @@ void Notify::mouseReleaseEvent(QMouseEvent * event){
     if(event->button()==Qt::LeftButton )
     {
         if(!pressing){
-            close();
+            stop();
             setCursor(Qt::ArrowCursor);
             event->accept();
         }
@@ -152,6 +150,9 @@ void Notify::readset(){
 }
 
 void Notify::stop(){
+    ui->note->setText("");
+    this->adjustSize();
     timer->stop();
-    emit closeed();
+    player->stop();
+    close();
 }
