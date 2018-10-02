@@ -6,4 +6,7 @@
         <file>rili.png</file>
         <file>rili0.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file>wei4.mp3</file>
+    </qresource>
 </RCC>

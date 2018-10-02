@@ -20,7 +20,7 @@ LayerItemDelegate::~LayerItemDelegate()
 void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
 
-        QString data, day, nlday,festival ,holiday,jieqi;
+        QString data, day, nlday,festival ,holiday,jieqi,hasnote;
         QStringList list;
         QRect rect = option.rect;
         QRect textRect;;
@@ -54,6 +54,8 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         holiday = list.at(7);
         //节气
         jieqi = list.at(9);
+
+        hasnote = list.at(10);
 //        ======================================
 //        画背景
         pen.setStyle(Qt::NoPen);
@@ -123,7 +125,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
             pen.setColor(QColor("#e02d2d"));
         }
         if(istoday)     pen.setColor(QColor("white"));
-        else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
+       // else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
         painter->setPen(pen);
         textRect.setRect(rect.x(), rect.y(), rect.width(), rect.height()/2);
         painter->drawText(textRect,day,textOption);
@@ -137,20 +139,46 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         pen.setColor(QColor("grey"));
         textRect.setRect(rect.x(), rect.y()+rect.height()/2, rect.width(), rect.height()/2);
         if(istoday)     pen.setColor(QColor("white"));//必须
-        else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
+        //else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
 
         painter->setPen(pen);//放在setColor后
         if(!festival.isEmpty()||!jieqi.isEmpty()){
             pen.setColor(QColor("#e02d2d"));
             if(istoday)    pen.setColor(QColor("white"));//也必须
-            else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
+           // else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
             painter->setPen(pen);
             if(festival.length()>4) festival.resize(4);
             if(!festival.isEmpty()) painter->drawText(textRect,festival,textOption);
             else painter->drawText(textRect,jieqi,textOption);
         }
         else    painter->drawText(textRect,nlday,textOption);
+
+        if(hasnote=="1") {
+//            QPainterPath path;
+//            path.moveTo(rect.x()+rect.width()*1.0/2-8,rect.y()+rect.height());
+//            path.lineTo(rect.x()+rect.width()*1.0/2+8,rect.y()+rect.height());
+//            path.lineTo(rect.x()+rect.width()*1.0/2,rect.y()+rect.height()-8);
+//            painter->setPen(Qt::NoPen);
+//            painter->setBrush(QBrush(QColor("#50a0f0")));
+//            painter->drawPath(path);
+            pen.setStyle(Qt::SolidLine);
+            pen.setWidth(2);
+            pen.setColor(QColor("#cc50a0ff"));
+            painter->setRenderHint(QPainter::Antialiasing,true);
+            painter->setPen(pen);
+            painter->setBrush(Qt::NoBrush);
+            painter->drawEllipse(rect.center()+QPoint(0,1),20,20);
+        }
+
+        if(!istomonth ){
+            //整体添加蒙版
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(QColor("#aaffffff"));
+            painter->drawRect(rect);
+        }
         //画分隔线
+        pen.setWidth(1);//设为1
+        painter->setRenderHint(QPainter::Antialiasing,false);//必须关闭反锯齿,保证线条清晰纤细
         pen.setStyle(Qt::SolidLine);
         pen.setColor(QColor("#c8cacc"));
         painter->setPen(pen);

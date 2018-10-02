@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui qml network
+QT       += core gui qml network multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,12 +25,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         rili.cpp \
-    layeritemdelegate.cpp
+    layeritemdelegate.cpp \
+    editor.cpp \
+    notify.cpp
 
 HEADERS  += rili.h \
-    layeritemdelegate.h
+    layeritemdelegate.h \
+    notedata.h \
+    editor.h \
+    notify.h
 
-FORMS    += rili.ui
+FORMS    += rili.ui \
+    editor.ui \
+    notify.ui
 
 RESOURCES += \
     res.qrc
