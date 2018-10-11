@@ -100,6 +100,7 @@ rili::rili(QWidget *parent) :
     readlist();
     initrili();
     readset();
+    timer->start();//一直运行，因为要检测日期变化
 }
 
 rili::~rili()
@@ -942,9 +943,7 @@ void rili::updatetasklist(){
             break;
         }
     }
-    qDebug()<<"tasklist:"<<tasklist;
-    if(tasklist.count()>0) timer->start();
-    else timer->stop();
+    //qDebug()<<"tasklist:"<<tasklist;
 }
 
 void rili::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
@@ -1072,6 +1071,11 @@ void rili::on_tableWidget_itemDoubleClicked(QTableWidgetItem *item)
 void rili::timeout(){
     QTime now;
     now = now.currentTime();
+    if(now.toString("hh:mm:ss")==("00:00:00")){
+        //凌晨就要重新生成tasklist
+        updatetasklist();
+    }
+
     int playtime=0;
     QString mp3 , img ,text;
     for(int i= 0;i<tasklist.length();i++)
@@ -1126,6 +1130,7 @@ void rili::timeout(){
         notify->message(text);//这时会启动notify计时
         notify->show();
     }
+
 }
 
 void rili::saveset(){
