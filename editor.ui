@@ -36,7 +36,8 @@ max-width:60px;
 
 padding: 1px 4px 1px 4px;
 background-color:white;
-border:1px solid #DBDBDB; }</string>
+border:1px solid #DBDBDB; 
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

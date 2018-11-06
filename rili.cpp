@@ -105,6 +105,7 @@ rili::rili(QWidget *parent) :
 
 rili::~rili()
 {
+    timer->stop();
     saveset();
     savelist();
     for(int i=0;i<notelist.count();i++)
@@ -219,7 +220,18 @@ void rili::setbartext(QString &data){
     //===============
     QString date = list.at(0);//日期，用于计算星期和判断今天
 
-    notesofdate(date);//刷新当前日程
+    QString allnote = notesofdate(date);//刷新当前日程
+    if(allnote.isEmpty()) {
+        ui->line_3->hide();
+        ui->shi->hide();
+        ui->shiqing->hide();
+    }
+    else {
+        ui->shiqing->setText(allnote);
+        ui->line_3->show();
+        ui->shi->show();
+        ui->shiqing->show();
+    }
 
     QDate d;
     d = QDate().fromString(date,"yyyy-MM-dd");
@@ -268,7 +280,6 @@ void rili::setbartext(QString &data){
         ui->jishi->setText(ji);
     }
     ui->widget_3->adjustSize();
-
 }
 
 void rili::initrili()
@@ -671,6 +682,7 @@ bool rili::savelist()
         {
             out<<(*(notelist[i]));
         }
+        file.close();
         return true;
     }
     else qDebug()<<"open notelist error.";
@@ -854,13 +866,13 @@ void rili::on_allnote_clicked()
     ui->allnote->hide();
 }
 
-void rili::notesofdate(QString &date){
+QString rili::notesofdate(QString &date){
     ui->listWidget->setCursor(QCursor(Qt::ArrowCursor));
     ui->listWidget->clear();
     QListWidgetItem* item;
     QDate d;
     notedata* tmp;
-    QString text;
+    QString text,allnote;
     QDate day;
     day = day.fromString(date , "yyyy-MM-dd");
     for(int i=0;i<notelist.count();i++)
@@ -901,6 +913,13 @@ void rili::notesofdate(QString &date){
         default:break;
         }
         if(tmp != NULL){
+            QString t = text;
+            t = t.replace('\n',' ');
+            if( allnote.isEmpty() ) allnote += t;
+            else {
+                allnote += '\n' + t;
+            }
+
             item = new QListWidgetItem(ui->listWidget);
             if(tmp->type == 3) item->setSizeHint(QSize(60,60));
             else item->setSizeHint(QSize(60,40));
@@ -915,6 +934,7 @@ void rili::notesofdate(QString &date){
     }
     ui->listWidget->sortItems(Qt::DescendingOrder);
     ui->allnote->show();
+    return allnote;
 }
 
 
@@ -1121,7 +1141,6 @@ void rili::timeout(){
            //不要去除notelist里面的！！这只是闹铃
             tasklist.removeAt(i);
             --i;//因为实时改动list会导致list长度也改变。
-            if(tasklist.count()<1) timer->stop();
             //不要updatetasklist了。直接删除tasklist里面的就行了
         }
     }

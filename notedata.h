@@ -10,9 +10,9 @@ struct notedata
     QString note;
     QString mp3_cmd;
     QString img;
+    int playtime;
     int per;
     int type;//date=0 , Year=1 , Mon=2 ,Week=3 , Day=4
-    int playtime;
     int id;//全部列表时，-1代表整天，新建日程时，-2代表新建的。每次都不同，可以不保存
 };
 

@@ -104,7 +104,7 @@ private:
     bool savelist();
     void cleannotesignal();
     void updatenotesignal();
-    void notesofdate(QString &);
+    QString notesofdate(QString &);
     void updatetasklist();
     void saveset();
     void readset();
