@@ -179,11 +179,12 @@ void rili::makedatelist(QString date){
 
 void rili::wheelstop()
 {
+    qDebug()<<"wheel";
+    wheel->stop();
     QString date,mon,year;
     year = QString().setNum(ui->year->currentIndex()+1900);
     mon = QString("%1").arg(QString().setNum(ui->mon->currentIndex()+1),2,'0') ;
     date = year +"-"+mon +"-"+currday;
-    //makedatelist(date);
     getholiday(date);//数据获取后会执行setbartext
 
 }
@@ -506,7 +507,7 @@ void rili::getholiday(QString& date){
        QString text = codec->toUnicode( data);
        qDebug()<<"has cache";
        gotdata(text);
-
+       io->close();
    }
    else {
        QNetworkRequest request;
@@ -521,7 +522,6 @@ void rili::getholiday(QString& date){
 }
 
 bool rili::eventFilter(QObject *object, QEvent *event){
-    if(ui->yishi2->text().isEmpty()&&ui->jishi2->text().isEmpty()) return false;
     if( (object == ui->widget_4)){
         if( event->type() == QEvent::Enter)
         {
@@ -555,6 +555,8 @@ bool rili::eventFilter(QObject *object, QEvent *event){
             }
             return true;
         }
+        return false;
+
     }
     else   return QWidget::eventFilter(object , event );//还需要原目标处理
     //event处理后返回true表示已经处理该事件，返回false则qt会将event发给原目标
@@ -1106,7 +1108,7 @@ void rili::timeout(){
             }
             qDebug()<<"work:"<<tasklist[i];
             QMimeDatabase db;
-            QMimeType mime = db.mimeTypeForFile(tasklist[i]->mp3_cmd);  //
+            QMimeType mime = db.mimeTypeForFile(tasklist[i]->mp3_cmd,QMimeDatabase::MatchContent);  //
             QString type = mime.name();
             //qDebug()<<type;
             //不匹配时返回application/octet-stream
