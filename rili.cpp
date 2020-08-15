@@ -99,8 +99,8 @@ rili::rili(QWidget *parent) :
     connect(timer , SIGNAL(timeout()) ,this , SLOT(timeout()));
     readlist();
     initrili();
-    readset();
-    timer->start();//一直运行，因为要检测日期变化
+   // readset();
+   // timer->start();//一直运行，因为要检测日期变化
 }
 
 rili::~rili()
@@ -145,24 +145,24 @@ void rili::makedatelist(QString date){
     //     0       1     2     3     4    5   6   7                     8   9  10
     //根据日期生成整个月的日期列表，包含前后两个月的头尾，共35天，7×5
     //初始化js引擎
-    QJSEngine myEngine;
-    QString fileName = ":/js/lunar5.js";
-     QFile scriptFile(fileName);
-     if (!scriptFile.open(QIODevice::ReadOnly)){
-         qDebug()<<"open js error"<<scriptFile.errorString();
-         return;
-     }
-     QTextStream stream(&scriptFile);
-     QString contents = stream.readAll();
-     scriptFile.close();
-     myEngine.evaluate(contents, fileName);
+//    QJSEngine myEngine;
+//    QString fileName = ":/js/lunar5.js";
+//     QFile scriptFile(fileName);
+//     if (!scriptFile.open(QIODevice::ReadOnly)){
+//         qDebug()<<"open js error"<<scriptFile.errorString();
+//         return;
+//     }
+//     QTextStream stream(&scriptFile);
+//     QString contents = stream.readAll();
+//     scriptFile.close();
+//     myEngine.evaluate(contents, fileName);
     //==========================================
      QTableWidgetItem *item;
     for(int i =0 ; i < 7*6 ; i++)
     {
         QString date2 = d.toString("yyyy-MM-dd");
-        str = myEngine.evaluate("lunar('" + date2 + "')").toString();
-        //qDebug()<<str;
+        str = date2 + ",,,,,,,,,,";
+        qDebug()<<str;
         item = ui->tableWidget->item(i/7,i%7);
         item->setSizeHint(QSize(48,33));
         item->setData(Qt::UserRole,QVariant(str));
@@ -172,9 +172,9 @@ void rili::makedatelist(QString date){
         //qDebug()<< "result:"<<str<<d;
         d = d.addDays(1);
     }
-    updatenotesignal();
+    //updatenotesignal();
 
-    wheel->start();
+    //wheel->start();
 }
 
 void rili::wheelstop()
@@ -193,7 +193,7 @@ void rili::on_tableWidget_itemClicked(QTableWidgetItem *item)
 {
     QString data;
     data = item->data(Qt::UserRole).toString();
-
+    qDebug()<<data;
     QStringList list;
     list = data.split(",");
     if(list.length() < 7) return;//确保数据无误再读取,总共是9个，此处最多用到第八个
@@ -300,7 +300,13 @@ void rili::initrili()
     for(int i =0 ; i < 7*6 ; i++)
     {
         item = new QTableWidgetItem;
+        QDate d = QDate::currentDate();
+        QString date2 = d.toString("yyyy-MM-dd");
+        QString str = date2 + ",,,,,,,,,,";
+        item->setSizeHint(QSize(48,33));
+        item->setData(Qt::UserRole,QVariant(str));
         ui->tableWidget->setItem(i/7%6,i%7,item);
+
     }
     on_today_clicked();
 }

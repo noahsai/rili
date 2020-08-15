@@ -191,7 +191,7 @@
         var f = '';
         var s = r.festival();
         if(s.length == 1) f = s[0].desc;
-        var result = d +","+ r.gzYear +","+ r.gzMonth +","+ r.gzDate +","+ r.lMonth +","+ r.lDate+ "," +f+ "," + "0" + "," + r.animal+","+r.term +",0";
+        var result = d +","+ r.gzYear +","+ r.gzMonth +","+ r.gzDate +","+ r.lMonth +","+ r.lDate+ "," +f+ "," + "0" + "," + r.animal+","+r.term;
         return result;
     }
 

@@ -35,7 +35,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         data = index.model()->data(index, Qt::UserRole).toString();
         //qDebug()<<index.row()<<index.column()<<data;
         list = data.split(",");
-        if(list.length() < 9) return;//确保数据无误再读取,总共是10个
+        if(list.length() < 10) return;//确保数据无误再读取,总共是11个
         QString date = list.at(0);//日期，用于计算星期和判断今天
         int w = QDate().fromString(date,"yyyy-MM-dd").dayOfWeek();//星期几
         bool istoday =(QDate().fromString(date,"yyyy-MM-dd").daysTo(QDate().currentDate())==0) ? true : false;
@@ -46,7 +46,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         //日期
         day = date.split("-").takeLast();
         if(day.at(0)=='0') day.remove('0');
-        //农历
+        //农历   
         nlday = list.at(5);
         //节日
         festival = list.at(6);
