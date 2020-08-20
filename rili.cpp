@@ -71,10 +71,11 @@ rili::rili(QWidget *parent) :
     diskCache->setCacheDirectory("/tmp/rili");
     diskCache->setMaximumCacheSize(10*1024*1024);//10mb
     manager.setCache(diskCache);
+    manager2.setCache(diskCache);
 
     ui->yishi2->setWordWrap(true);
     ui->jishi2->setWordWrap(true);
-    ui->widget_3->setFixedWidth(200);
+    ui->widget_3->setFixedWidth(210);
     ui->widget_3->setParent(this);
     ui->widget_3->hide();
 
@@ -99,8 +100,8 @@ rili::rili(QWidget *parent) :
     connect(timer , SIGNAL(timeout()) ,this , SLOT(timeout()));
     readlist();
     initrili();
-   // readset();
-   // timer->start();//一直运行，因为要检测日期变化
+    readset();
+    timer->start();//一直运行，因为要检测日期变化
 }
 
 rili::~rili()
@@ -117,7 +118,6 @@ rili::~rili()
 
 void rili::makedatelist(QString date){
     ui->tableWidget->clearSelection();
-
     QDate d;
     d = d.fromString(date,"yyyy-MM-dd");
     //如果日期出错，设为该月最后一日
@@ -172,9 +172,9 @@ void rili::makedatelist(QString date){
         //qDebug()<< "result:"<<str<<d;
         d = d.addDays(1);
     }
-    //updatenotesignal();
+    updatenotesignal();
 
-    //wheel->start();
+    wheel->start();
 }
 
 void rili::wheelstop()
@@ -186,6 +186,7 @@ void rili::wheelstop()
     mon = QString("%1").arg(QString().setNum(ui->mon->currentIndex()+1),2,'0') ;
     date = year +"-"+mon +"-"+currday;
     getholiday(date);//数据获取后会执行setbartext
+    getmonth(date);
 
 }
 
@@ -245,7 +246,7 @@ void rili::setbartext(QString &data){
     //农历
     nlday = list.at(5);
 
-    //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,term,日程"
+    //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,节气,日程"
     //      0       1     2    3     4   5   6   7                     8   9   10
     ui->date->setText(date+" 星期"+change(w));
     ui->day->setText(day);
@@ -412,45 +413,28 @@ void rili::on_exit_clicked()
     hide();
 }
 
-void rili::replyfinished(){
+void rili::gotholiday(){
+    QNetworkReply* reply = (QNetworkReply*)sender();
     QTextCodec *codec = QTextCodec::codecForName("GBK");
     QByteArray data = reply->readAll();
     reply->deleteLater();
-    QString text = codec->toUnicode( data);
-    //qDebug()<<text;
-    gotdata(text);
+    QString text = codec->toUnicode(data);
+    qDebug()<<text;
+    gotholidaydata(text);
 }
 
-void rili::gotdata(QString& data){
-    QString clean;
-    setbartext(clean);//清空bar
-    QRegularExpression reg;
-    reg.setPattern("(?<=almanac\":).+?]");
-    QString yiji = reg.match(data).captured(0);
-    //qDebug()<<data;
-    QJsonObject ob;
-    QString time,yi,ji;
-    QJsonArray arr;
+void rili::gotmonth(){
+    QNetworkReply* reply = (QNetworkReply*)sender();
+    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+    QByteArray data = reply->readAll();
+    reply->deleteLater();
+    QString text = codec->toUnicode(data);
+    qDebug()<<text;
+    gotmonthdata(text);
+}
 
-    QJsonParseError json_error;
-    QJsonDocument document = QJsonDocument::fromJson( yiji.toUtf8() , &json_error );
-    if(json_error.error != QJsonParseError::NoError) {
-        qDebug()<<"json error"<<json_error.errorString();
-        return;
-    }
-    else {
-        arr = document.array();
-        for(int i=0;i<arr.count();i++)
-        {
-            ob = arr.at(i).toObject();
-            time = ob.value("date").toString();
-            yi = ob.value("suit").toString();
-            ji = ob.value("avoid").toString();
-            map[time]=yi+"|"+ji;
-        }
-        //qDebug()<<map;
-        //qDebug()<<"data:"<<data;
-    }
+void rili::gotholidaydata(QString& data){
+    QRegularExpression reg;
     QString holiday;
     reg.setPattern("(?<=festival\":).+?(?=])");
     QRegularExpressionMatchIterator matchs = reg.globalMatch(data);
@@ -474,13 +458,13 @@ void rili::gotdata(QString& data){
             if(text.length()<2)  return;
             date = text.at(0);
             statu = text.at(1);
-            holidaymap[date] = statu;
+            //holidaymap[date] = statu;
 
             QDate d;
             QTableWidgetItem *item;
             d = d.fromString(date,"yyyy-M-d");//这个格式没错
             int n = startday .daysTo( d);
-            if(n>=0) {
+            if(n>=0 && n<42) {
                 int c = n%7;
                 int r = n/7%6;
                 item = ui->tableWidget->item(r,c);
@@ -488,7 +472,7 @@ void rili::gotdata(QString& data){
                 QStringList list = data.split(",");
                 list.replace( 7 ,statu);//7是调休
                 data = list.join(",");//
-                //qDebug()<<n<<c<<r<<data;;
+                qDebug()<<n<<c<<r<<data;;
                 item->setData(Qt::UserRole,data);
             }
         }
@@ -501,8 +485,80 @@ void rili::gotdata(QString& data){
 
 }
 
+
+void rili::gotmonthdata(QString& data){
+    map.clear();
+    QString clean;
+    setbartext(clean);//清空bar
+    QRegularExpression reg;
+    reg.setPattern("(?<=almanac\":).+?]");
+    QString yiji = reg.match(data).captured(0);
+    //qDebug()<<data;
+    QJsonObject ob;
+    QString time,yi,ji;
+    QJsonArray arr;
+
+    QJsonParseError json_error;
+    QJsonDocument document = QJsonDocument::fromJson( yiji.toUtf8() , &json_error );
+    if(json_error.error != QJsonParseError::NoError) {
+        qDebug()<<"json error"<<json_error.errorString();
+        return;
+    }
+    else {
+        arr = document.array();
+        for(int i=0;i<arr.count();i++)
+        {
+            ob = arr.at(i).toObject();
+            time = ob.value("year").toString()+"-"+ob.value("month").toString()+"-"+ob.value("day").toString();
+            yi = ob.value("suit").toString();
+            ji = ob.value("avoid").toString();
+            map[time]=yi+"|"+ji;
+
+            QDate d;
+            QTableWidgetItem *item;
+            d = d.fromString(time,"yyyy-M-d");//这个格式没错
+            int n = startday .daysTo( d);
+            if(n>=0 && n<42) {
+                int c = n%7;
+                int r = n/7%6;
+                item = ui->tableWidget->item(r,c);
+                QString data = item->data(Qt::UserRole).toString();
+                QStringList list = data.split(",");
+                //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,term,日程"
+                //      0       1     2    3     4     5   6   7                     8   9   10
+                list.replace( 1 ,ob.value("gzYear").toString());
+                list.replace( 2 ,ob.value("gzMonth").toString());
+                list.replace( 3 ,ob.value("gzDate").toString());
+                list.replace( 4 ,ob.value("lMonth").toString());
+                list.replace( 5 ,ob.value("lDate").toString());
+                list.replace( 6 ,ob.value("value").toString());
+                list.replace( 8 ,ob.value("animal").toString());
+                list.replace( 9 ,ob.value("term").toString());
+                data = list.join(",");//
+                qDebug()<<n<<c<<r<<data;;
+                item->setData(Qt::UserRole,data);
+            }
+        }
+        //qDebug()<<map;
+        //qDebug()<<"data:"<<data;
+    }
+    //=============================================
+    //需要分成两个函数，因是两个不同地址获取的数据
+    //=============================================
+
+    //获取后更新侧栏数据
+    QString str =  ui->tableWidget->selectedItems().at(0)->data(Qt::UserRole).toString();
+    //qDebug()<<"str:"<<str;
+    setbartext(str);//获取假期后再setbartext，这样宜忌就有数据了
+
+}
+
+
 void rili::getholiday(QString& date){
-   QString url="https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query="+date+"&resource_id=6018";
+    QStringList l = date.split('-');
+    QString nianyue = l.at(0)+"-"+l.at(1);
+   QString url= "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query="+nianyue+"&resource_id=6018";
+   //QString url="https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query="+nianyue+"&co=&resource_id=39043&t=&ie=utf8&oe=utf8&cb=op_aladdin_callback&format=json&tn=wisetpl&cb=&_=";
    QIODevice *io =  NULL;//初始化
    if(diskCache ) io = diskCache->data(QUrl(url));
    //qDebug()<<diskCache<<url;
@@ -511,8 +567,8 @@ void rili::getholiday(QString& date){
        QTextCodec *codec = QTextCodec::codecForName("GBK");
        QByteArray data = io->readAll();
        QString text = codec->toUnicode( data);
-       qDebug()<<"has cache";
-       gotdata(text);
+       qDebug()<<nianyue<<"has holiday cache";
+       gotholidaydata(text);
        io->close();
    }
    else {
@@ -520,9 +576,39 @@ void rili::getholiday(QString& date){
        request.setRawHeader(QByteArray("User-Agent"), "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36");
        request.setRawHeader(QByteArray("Referer"), "https://www.baidu.com/");
        request.setUrl(QUrl(url) );
-       reply = manager.get(request);
-       connect(reply , SIGNAL(finished()),this, SLOT(replyfinished()));
-       qDebug()<<"to get net data";
+       QNetworkReply* reply  = manager.get(request);
+       connect(reply , SIGNAL(finished()),this, SLOT(gotholiday()));
+       qDebug()<<nianyue<<"to get net holiday data";
+
+   }
+}
+
+void rili::getmonth(QString & date){
+    QStringList l = date.split('-');
+    QString nianyue = l.at(0)+"年"+l.at(1)+"月";
+    nianyue = nianyue.replace("年0","年");
+   //QString url= "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query="+date+"&resource_id=6018";
+   QString url="https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query="+nianyue+"&co=&resource_id=39043&t=&ie=utf8&oe=utf8&cb=op_aladdin_callback&format=json&tn=wisetpl&cb=&_=";
+   QIODevice *io =  NULL;//初始化
+   if(diskCache ) io = diskCache->data(QUrl(url));
+   //qDebug()<<diskCache<<url;
+   if( io )
+   {
+       QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+       QByteArray data = io->readAll();
+       QString text = codec->toUnicode( data);
+       qDebug()<<nianyue<<"has month cache";
+       gotmonthdata(text);
+       io->close();
+   }
+   else {
+       QNetworkRequest request;
+       request.setRawHeader(QByteArray("User-Agent"), "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36");
+       request.setRawHeader(QByteArray("Referer"), "https://www.baidu.com/");
+       request.setUrl(QUrl(url) );
+       QNetworkReply* reply  = manager2.get(request);
+       connect(reply , SIGNAL(finished()),this, SLOT(gotmonth()));
+       qDebug()<<nianyue<<"to get net month data";
 
    }
 }
@@ -532,17 +618,21 @@ bool rili::eventFilter(QObject *object, QEvent *event){
         if( event->type() == QEvent::Enter)
         {
            // qDebug()<<"enter";
-            ui->widget_3->adjustSize();
-            ui->widget_3->move(this->width()-ui->widget_3->width()-130-3 , this->height()-ui->widget_3->height()-1);
+            ui->yishi2->setFixedWidth(160);
+            ui->jishi2->setFixedWidth(160);
+            ui->shiqing->setFixedWidth(160);
+
             ui->widget_3->show();
+            ui->widget_3->adjustSize();
+            ui->widget_3->setWindowFlag(Qt::Popup);
+            ui->widget_3->move(this->x()+this->width()-ui->widget_3->width()-130-3 , this->y()+this->height()-ui->widget_3->height()-1);
+        //qDebug()<<ui->yishi2->sizeHint()<<ui->yishi2->size();
+
+
             event->accept();//必须
             return true;
         }
-        else if(event->type() == QEvent::Leave){
-            ui->widget_3->hide();
-            event->accept();//必须
-            return true;
-        }
+        else return false;
     }
     else if( (object == ui->tableWidget) ){
         if(event->type() == QEvent::Wheel){

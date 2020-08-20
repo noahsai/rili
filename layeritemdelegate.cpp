@@ -84,6 +84,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         }
 
         //画底&写"班","休"
+        textOption.setAlignment( Qt::AlignHCenter | Qt::AlignVCenter);
         if(holiday == "1" )
         {
             pen.setStyle(Qt::NoPen);
@@ -92,7 +93,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
             painter->setPen(pen);
             painter->drawRect(textRect);
             //---------------
-            font.setPixelSize(13);
+            font.setPixelSize(12);
             painter->setFont(font);
             pen.setStyle(Qt::SolidLine);
             pen.setColor(QColor("white"));
@@ -107,7 +108,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
             painter->setPen(pen);
             painter->drawRect(textRect);
             //-------------
-            font.setPixelSize(13);
+            font.setPixelSize(12);
             painter->setFont(font);
             pen.setStyle(Qt::SolidLine);
             pen.setColor(QColor("white"));
@@ -116,7 +117,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         }
 
         //写日期
-        textOption.setAlignment( Qt::AlignHCenter | Qt::AlignBottom);
+        textOption.setAlignment( Qt::AlignHCenter );
         font.setPixelSize(16);
         painter->setFont(font);
         pen.setStyle(Qt::SolidLine);
@@ -129,7 +130,7 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         painter->setPen(pen);
         textRect.setRect(rect.x(), rect.y(), rect.width(), rect.height()/2);
         painter->drawText(textRect,day,textOption);
-        //qDebug()<<textRect;
+        //qDebug()<<textRect.height();
 
         //写节日 或 写农历 , 优先节日,其次节气 ，最后农历
         textOption.setAlignment( Qt::AlignHCenter | Qt::AlignTop);
@@ -164,10 +165,12 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
             pen.setStyle(Qt::SolidLine);
             pen.setWidth(2);
             pen.setColor(QColor("#cc50a0ff"));
+            //pen.setColor(QColor("#99DC143C"));
+
             painter->setRenderHint(QPainter::Antialiasing,true);
             painter->setPen(pen);
             painter->setBrush(Qt::NoBrush);
-            painter->drawEllipse(rect.center()+QPoint(0,1),20,20);
+            painter->drawEllipse(rect.center()+QPoint(0,1),20,18);
         }
 
         if(!istomonth ){

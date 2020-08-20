@@ -62,7 +62,8 @@ private slots:
 
     void on_exit_clicked();
 
-    void replyfinished();
+    void gotholiday();
+    void gotmonth();
 
     void trayiconactive(QSystemTrayIcon::ActivationReason reason);
 
@@ -97,7 +98,10 @@ private:
     void initrili();
     void setbartext(QString&);
     void getholiday(QString&);
-    void gotdata(QString&);
+    void getmonth(QString&);
+
+    void gotholidaydata(QString&);
+    void gotmonthdata(QString&);
     void creattrayicon();
     void freshicon();
     bool readlist();
@@ -109,7 +113,7 @@ private:
     void saveset();
     void readset();
     QString currday;
-    QNetworkAccessManager manager;
+    QNetworkAccessManager manager,manager2;
     QNetworkReply* reply;
     QNetworkDiskCache *diskCache;
     QPoint oldpos;
