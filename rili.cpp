@@ -162,7 +162,7 @@ void rili::makedatelist(QString date){
     {
         QString date2 = d.toString("yyyy-MM-dd");
         str = date2 + ",,,,,,,,,,";
-        qDebug()<<str;
+        //qDebug()<<str;
         item = ui->tableWidget->item(i/7,i%7);
         item->setSizeHint(QSize(48,33));
         item->setData(Qt::UserRole,QVariant(str));
@@ -186,7 +186,7 @@ void rili::wheelstop()
     mon = QString("%1").arg(QString().setNum(ui->mon->currentIndex()+1),2,'0') ;
     date = year +"-"+mon +"-"+currday;
     getholiday(date);//数据获取后会执行setbartext
-    getmonth(date);
+    getlocalmonth(date);
 
 }
 
@@ -433,7 +433,7 @@ void rili::gotmonth(){
     gotmonthdata(text);
 }
 
-void rili::gotholidaydata(QString& data){
+bool rili::gotholidaydata(QString& data){
     QRegularExpression reg;
     QString holiday;
     reg.setPattern("(?<=festival\":).+?(?=])");
@@ -445,9 +445,11 @@ void rili::gotholidaydata(QString& data){
             item = matchs.next();
             holiday = holiday + item.captured();
         }
+        if(holiday.isEmpty()) return false;
 
         reg.setPattern("\\d{4}-\\d{1,2}-\\d{1,2}[^\\d]+?\\d(?=\")");
         matchs = reg.globalMatch(holiday);
+        if(!matchs.isValid()) return false;
         while(matchs.hasNext())
         {
             item = matchs.next();
@@ -455,7 +457,7 @@ void rili::gotholidaydata(QString& data){
             QStringList text;
             date = item.captured(0);
             text = date.split(QRegularExpression("\".+\""));
-            if(text.length()<2)  return;
+            if(text.length()<2)  return false;
             date = text.at(0);
             statu = text.at(1);
             //holidaymap[date] = statu;
@@ -476,17 +478,17 @@ void rili::gotholidaydata(QString& data){
                 item->setData(Qt::UserRole,data);
             }
         }
+        return true;
      }
-    else  qDebug()<<"data not found holiday";
-    //获取后更新侧栏数据
-    QString str =  ui->tableWidget->selectedItems().at(0)->data(Qt::UserRole).toString();
-    //qDebug()<<"str:"<<str;
-    setbartext(str);//获取假期后再setbartext，这样宜忌就有数据了
+    else  {
+        qDebug()<<"data not found holiday";
+        return false;
+    }
 
 }
 
 
-void rili::gotmonthdata(QString& data){
+bool rili::gotmonthdata(QString& data){
     map.clear();
     QString clean;
     setbartext(clean);//清空bar
@@ -502,7 +504,7 @@ void rili::gotmonthdata(QString& data){
     QJsonDocument document = QJsonDocument::fromJson( yiji.toUtf8() , &json_error );
     if(json_error.error != QJsonParseError::NoError) {
         qDebug()<<"json error"<<json_error.errorString();
-        return;
+        return false;
     }
     else {
         arr = document.array();
@@ -550,7 +552,7 @@ void rili::gotmonthdata(QString& data){
     QString str =  ui->tableWidget->selectedItems().at(0)->data(Qt::UserRole).toString();
     //qDebug()<<"str:"<<str;
     setbartext(str);//获取假期后再setbartext，这样宜忌就有数据了
-
+    return true;
 }
 
 
@@ -568,7 +570,15 @@ void rili::getholiday(QString& date){
        QByteArray data = io->readAll();
        QString text = codec->toUnicode( data);
        qDebug()<<nianyue<<"has holiday cache";
-       gotholidaydata(text);
+       if(!gotholidaydata(text)){
+           QNetworkRequest request;
+           request.setRawHeader(QByteArray("User-Agent"), "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36");
+           request.setRawHeader(QByteArray("Referer"), "https://www.baidu.com/");
+           request.setUrl(QUrl(url) );
+           QNetworkReply* reply  = manager.get(request);
+           connect(reply , SIGNAL(finished()),this, SLOT(gotholiday()));
+           qDebug()<<nianyue<<"to get net holiday data";
+       }
        io->close();
    }
    else {
@@ -598,7 +608,15 @@ void rili::getmonth(QString & date){
        QByteArray data = io->readAll();
        QString text = codec->toUnicode( data);
        qDebug()<<nianyue<<"has month cache";
-       gotmonthdata(text);
+       if(!gotmonthdata(text)){
+           QNetworkRequest request;
+           request.setRawHeader(QByteArray("User-Agent"), "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36");
+           request.setRawHeader(QByteArray("Referer"), "https://www.baidu.com/");
+           request.setUrl(QUrl(url) );
+           QNetworkReply* reply  = manager2.get(request);
+           connect(reply , SIGNAL(finished()),this, SLOT(gotmonth()));
+           qDebug()<<nianyue<<"to get net month data";
+       }
        io->close();
    }
    else {
@@ -611,6 +629,29 @@ void rili::getmonth(QString & date){
        qDebug()<<nianyue<<"to get net month data";
 
    }
+}
+
+void rili::getlocalmonth(QString &date){
+    QStringList l = date.split('-');
+    l.takeLast();
+    QString nianyue =l.join("-");
+    nianyue = nianyue.replace("-0","-");
+    QFile file;
+    file.setFileName(cfgpath+"/rilidata/"+nianyue);
+    if(file.open(QIODevice::ReadOnly)){
+        qDebug()<<"open local file "<<file.fileName();
+        QString text = file.readAll();
+        qDebug()<<text;
+        if(!gotmonthdata(text)){
+            getmonth(date);
+        }
+        file.close();
+    }
+
+    else {
+        qDebug()<<"local not found"<<date;
+        getmonth(date);
+    }
 }
 
 bool rili::eventFilter(QObject *object, QEvent *event){

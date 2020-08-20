@@ -5,7 +5,7 @@
 #include<layeritemdelegate.h>
 #include<QTextStream>
 #include<QFile>
-#include<QJSEngine>
+//#include<QJSEngine>
 #include<QTableWidgetItem>
 #include <QMouseEvent>
 #include<QJsonArray>
@@ -99,9 +99,10 @@ private:
     void setbartext(QString&);
     void getholiday(QString&);
     void getmonth(QString&);
+    void getlocalmonth(QString&);
 
-    void gotholidaydata(QString&);
-    void gotmonthdata(QString&);
+    bool gotholidaydata(QString&);
+    bool gotmonthdata(QString&);
     void creattrayicon();
     void freshicon();
     bool readlist();
@@ -117,7 +118,7 @@ private:
     QNetworkReply* reply;
     QNetworkDiskCache *diskCache;
     QPoint oldpos;
-    QMap<QString,QString> map,holidaymap;
+    QMap<QString,QString> map;
     QDate startday;
 
     QSystemTrayIcon *trayIcon;
