@@ -1,7 +1,4 @@
 <RCC>
-    <qresource prefix="/js">
-        <file>lunar5.js</file>
-    </qresource>
     <qresource prefix="/img">
         <file>rili.png</file>
         <file>rili0.png</file>

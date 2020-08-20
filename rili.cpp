@@ -144,18 +144,7 @@ void rili::makedatelist(QString date){
     //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班)，生肖,节气,日程"
     //     0       1     2     3     4    5   6   7                     8   9  10
     //根据日期生成整个月的日期列表，包含前后两个月的头尾，共35天，7×5
-    //初始化js引擎
-//    QJSEngine myEngine;
-//    QString fileName = ":/js/lunar5.js";
-//     QFile scriptFile(fileName);
-//     if (!scriptFile.open(QIODevice::ReadOnly)){
-//         qDebug()<<"open js error"<<scriptFile.errorString();
-//         return;
-//     }
-//     QTextStream stream(&scriptFile);
-//     QString contents = stream.readAll();
-//     scriptFile.close();
-//     myEngine.evaluate(contents, fileName);
+
     //==========================================
      QTableWidgetItem *item;
     for(int i =0 ; i < 7*6 ; i++)
