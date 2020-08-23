@@ -507,6 +507,7 @@ bool rili::gotmonthdata(QString& data){
                 int c = n%7;
                 int r = n/7%6;
                 item = ui->tableWidget->item(r,c);
+                item->setToolTip("");//清除之前的tooltip
                 QString data = item->data(Qt::UserRole).toString();
                 QStringList list = data.split(",");
                 //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,term,日程,其他节日"
@@ -520,16 +521,24 @@ bool rili::gotmonthdata(QString& data){
                 text =text.remove("世界");
                 list.replace( 6 ,text);
                 list.replace( 8 ,ob.value("animal").toString());
+
                 text = ob.value("term").toString();
+                if(!text.isEmpty()) item->setToolTip(text);
                 text =text.remove("世界");
                 list.replace( 9 , text);
+
                 text = ob.value("value").toString();
+                qDebug()<<"value"<<text<<"\'";
+                if(!text.isEmpty()) {
+                    if(item->text().isEmpty()) item->setToolTip(text);
+                    else item->setToolTip(text+"\n"+item->text());
+                }
                 text =text.remove("世界");
                 list.replace( 11 , text);
+
                 data = list.join(",");//
                 qDebug()<<n<<c<<r<<data;;
                 item->setData(Qt::UserRole,data);
-
             }
         }
         //qDebug()<<map;
