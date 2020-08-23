@@ -141,8 +141,8 @@ void rili::makedatelist(QString date){
     d = d.addDays(0-(w - 1));
     startday =d;
     QString str;
-    //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班)，生肖,节气,日程"
-    //     0       1     2     3     4    5   6   7                     8   9  10
+    //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班)，生肖,节气,日程,其他节日"
+    //     0       1     2     3     4    5   6   7                     8   9  10       11
     //根据日期生成整个月的日期列表，包含前后两个月的头尾，共35天，7×5
 
     //==========================================
@@ -150,10 +150,9 @@ void rili::makedatelist(QString date){
     for(int i =0 ; i < 7*6 ; i++)
     {
         QString date2 = d.toString("yyyy-MM-dd");
-        str = date2 + ",,,,,,,,,,";
+        str = date2 + ",,,,,,,,,,,";
         //qDebug()<<str;
         item = ui->tableWidget->item(i/7,i%7);
-        item->setSizeHint(QSize(48,33));
         item->setData(Qt::UserRole,QVariant(str));
         if(date2 == date ) {
             item->setSelected(true);
@@ -207,7 +206,7 @@ void rili::setbartext(QString &data){
     QString  day, nlday;
     QStringList list;
     list = data.split(",");
-    if(list.length() < 7) return;//确保数据无误再读取
+    if(list.length() < 11) return;//确保数据无误再读取
     //===============
     QString date = list.at(0);//日期，用于计算星期和判断今天
 
@@ -235,8 +234,8 @@ void rili::setbartext(QString &data){
     //农历
     nlday = list.at(5);
 
-    //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,节气,日程"
-    //      0       1     2    3     4   5   6   7                     8   9   10
+    //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,节气,日程，其他节日"
+    //      0       1     2    3     4   5   6   7                       8    9   10     11
     ui->date->setText(date+" 星期"+change(w));
     ui->day->setText(day);
     ui->nongli->setText(list.at(4)+"月"+nlday);
@@ -290,13 +289,8 @@ void rili::initrili()
     for(int i =0 ; i < 7*6 ; i++)
     {
         item = new QTableWidgetItem;
-        QDate d = QDate::currentDate();
-        QString date2 = d.toString("yyyy-MM-dd");
-        QString str = date2 + ",,,,,,,,,,";
         item->setSizeHint(QSize(48,33));
-        item->setData(Qt::UserRole,QVariant(str));
         ui->tableWidget->setItem(i/7%6,i%7,item);
-
     }
     on_today_clicked();
 }
@@ -515,19 +509,27 @@ bool rili::gotmonthdata(QString& data){
                 item = ui->tableWidget->item(r,c);
                 QString data = item->data(Qt::UserRole).toString();
                 QStringList list = data.split(",");
-                //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,term,日程"
-                //      0       1     2    3     4     5   6   7                     8   9   10
+                //"xxxx-xx-xx,干支年,干支月,干支日，农月，农日,节日,放假(0正常，1节假,2补班),生肖,term,日程,其他节日"
+                //      0       1     2    3     4     5   6   7                     8   9   10     11
                 list.replace( 1 ,ob.value("gzYear").toString());
                 list.replace( 2 ,ob.value("gzMonth").toString());
                 list.replace( 3 ,ob.value("gzDate").toString());
                 list.replace( 4 ,ob.value("lMonth").toString());
                 list.replace( 5 ,ob.value("lDate").toString());
-                list.replace( 6 ,ob.value("value").toString());
+                QString text = ob.value("desc").toString();
+                text =text.remove("世界");
+                list.replace( 6 ,text);
                 list.replace( 8 ,ob.value("animal").toString());
-                list.replace( 9 ,ob.value("term").toString());
+                text = ob.value("term").toString();
+                text =text.remove("世界");
+                list.replace( 9 , text);
+                text = ob.value("value").toString();
+                text =text.remove("世界");
+                list.replace( 11 , text);
                 data = list.join(",");//
                 qDebug()<<n<<c<<r<<data;;
                 item->setData(Qt::UserRole,data);
+
             }
         }
         //qDebug()<<map;

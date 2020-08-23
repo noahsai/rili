@@ -20,7 +20,7 @@ LayerItemDelegate::~LayerItemDelegate()
 void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
 
-        QString data, day, nlday,festival ,holiday,jieqi,hasnote;
+        QString data, day, nlday,festival ,holiday,jieqi,hasnote,qita;
         QStringList list;
         QRect rect = option.rect;
         QRect textRect;;
@@ -56,6 +56,8 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         jieqi = list.at(9);
 
         hasnote = list.at(10);
+
+        qita = list.at(11);
 //        ======================================
 //        画背景
         pen.setStyle(Qt::NoPen);
@@ -73,7 +75,9 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         }
         painter->setPen(pen);
         painter->setBrush(QColor(brushcolor));
-        painter->drawRect(rect);
+        QRect rt = rect;
+        rt.setWidth(rect.width()-1);
+        painter->drawRect(rt);
 
         if (option.state & QStyle::State_Selected )   {
             //话选中框
@@ -132,27 +136,34 @@ void LayerItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & o
         painter->drawText(textRect,day,textOption);
         //qDebug()<<textRect.height();
 
-        //写节日 或 写农历 , 优先节日,其次节气 ，最后农历
+        //写节日 或 写农历 , 优先节日,其次节气,其他节日，最后农历
         textOption.setAlignment( Qt::AlignHCenter | Qt::AlignTop);
         font.setPixelSize(12);
         painter->setFont(font);
         pen.setStyle(Qt::SolidLine);
         pen.setColor(QColor("grey"));
-        textRect.setRect(rect.x(), rect.y()+rect.height()/2, rect.width(), rect.height()/2);
+        textRect.setRect(rect.x()+1, rect.y()+rect.height()/2, rect.width()-2, rect.height()/2-1);
         if(istoday)     pen.setColor(QColor("white"));//必须
         //else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
 
         painter->setPen(pen);//放在setColor后
-        if(!festival.isEmpty()||!jieqi.isEmpty()){
+        if(festival.isEmpty() && jieqi.isEmpty() && qita.isEmpty()){
+            //没节日无节气显示农历
+            painter->drawText(textRect,nlday,textOption);
+        }
+        else{
             pen.setColor(QColor("#e02d2d"));
             if(istoday)    pen.setColor(QColor("white"));//也必须
            // else if(!istomonth )     pen.setColor(QColor("#bfbfbf"));
             painter->setPen(pen);
-            if(festival.length()>4) festival.resize(4);
-            if(!festival.isEmpty()) painter->drawText(textRect,festival,textOption);
-            else painter->drawText(textRect,jieqi,textOption);
+            //先节日，再节气，再其他
+            QString text;
+            if(!festival.isEmpty()) text = festival;
+            else if(!jieqi.isEmpty()) text = jieqi;
+            else text = qita;
+            if(text.length()>4) text.resize(4);
+            painter->drawText(textRect,text,textOption);
         }
-        else    painter->drawText(textRect,nlday,textOption);
 
         if(hasnote=="1") {
 //            QPainterPath path;
