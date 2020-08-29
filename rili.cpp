@@ -394,6 +394,7 @@ void rili::mouseReleaseEvent(QMouseEvent * event){
 void rili::on_exit_clicked()
 {
     hide();
+    //qDebug()<<isHidden();
 }
 
 void rili::gotholiday(){
@@ -1295,6 +1296,9 @@ void rili::saveset(){
     QSettings settings("rili", "rilipos");
    // settings.setValue("size", QSize(370, 150));//因为没得调大小，所以不要记录大小了
     settings.setValue("pos", pos());
+    settings.setValue("hide",this->isHidden());
+    //qDebug()<<this->isHidden();
+
 }
 
 
@@ -1308,4 +1312,9 @@ void rili::readset(){
     if(point.x()<0||point.x()>QApplication::desktop()->width()-20) point.setX(x);
     if(point.y()<0||point.y()>QApplication::desktop()->height()-40) point.setY(y);
     move(point);
+    bool h = true;
+    h = settings.value("hide",false).toBool();
+    //qDebug()<<h;
+    if(h) hide();
+    else show();
 }
